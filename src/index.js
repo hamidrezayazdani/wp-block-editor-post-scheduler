@@ -1,9 +1,9 @@
 import * as wpDate from "@wordpress/date";
-import {__} from '@wordpress/i18n';
-import {Button} from '@wordpress/components';
-import {registerPlugin} from '@wordpress/plugins';
-import {PostScheduleCheck} from '@wordpress/editor';
-import {PluginPostStatusInfo} from '@wordpress/edit-post';
+import { __ } from '@wordpress/i18n';
+import { Button } from '@wordpress/components';
+import { registerPlugin } from '@wordpress/plugins';
+import { PostScheduleCheck } from '@wordpress/editor';
+import { PluginPostStatusInfo } from '@wordpress/edit-post';
 import DatePicker from "react-multi-date-picker"
 import TimePicker from "react-multi-date-picker/plugins/time_picker";
 import Toolbar from "react-multi-date-picker/plugins/toolbar"
@@ -41,7 +41,7 @@ registerPlugin(
 						>
 							{__('Publish')}
 						</label>
-						<div style={{direction: "rtl"}}>
+						<div style={{ direction: "rtl" }}>
 							<DatePicker
 								className="wpp-post-scheduler"
 								portal={1}
@@ -61,12 +61,12 @@ registerPlugin(
 										}}
 									/>
 								]}
-								renderButton={<CustomButton/>}
+								renderButton={<CustomButton />}
 								calendar={persian}
 								locale={persian_fa}
 								value={value.setCalendar(persian).format("DD MMMM YYYY HH:mm")}
 								weekDays={weekDays}
-								mapDays={({date}) => {
+								mapDays={({ date }) => {
 									let props = {}
 									let isWeekend = [6].includes(date.weekDay.index)
 
@@ -102,10 +102,10 @@ function wppSetPostDate(val) {
 	});
 	//date = date.convert(gregorian).format("YYYY-MM-DD HH:MM:SS")
 	let postDate = date.set("calendar", gregorian).set("locale", gregorian_en).format()
-	wp.data.dispatch('core/editor').editPost({date: postDate})
+	wp.data.dispatch('core/editor').editPost({ date: postDate })
 }
 
-function CustomButton({direction, handleClick, disabled}) {
+function CustomButton({ direction, handleClick, disabled }) {
 	return (
 		<button
 			className={direction === "right" ? "components-button is-tertiary has-icon wpp-right" : "components-button is-tertiary has-icon wpp-left"}
@@ -131,24 +131,40 @@ function CustomButton({direction, handleClick, disabled}) {
  *
  * @type {HTMLCollectionOf<Element>}
  */
-const authorBox = document.getElementsByClassName(('components-panel__row edit-post-post-author'))
+//const authorBox = document.getElementsByClassName(('components-panel__row edit-post-post-author'))
+const authorBox = document.getElementsByClassName(('post-author-selector'))
 
-let onAuthorBlockIsRendered = function () {
+let onInitauthorBox = function () {
 	return new Promise(function (resolve, reject) {
-		function waitUntilAuthorBoxRendered() {
+		function waitUntilauthorBoxRendered() {
 			setTimeout(function () {
 				if (authorBox.length > 0) {
 					resolve(authorBox[0]);
 				} else {
-					waitUntilAuthorBoxRendered();
+					waitUntilauthorBoxRendered();
 				}
 			}, 100);
 		}
 
-		waitUntilAuthorBoxRendered();
+		waitUntilauthorBoxRendered();
 	});
 };
 
-onAuthorBlockIsRendered().then(function (element) {
-	document.getElementsByClassName('components-panel__row edit-post-post-visibility')[0].after(document.getElementsByClassName('wpp-calendar-edit-post-post-schedule')[0])
+onInitauthorBox().then(function (el) {
+	// Ensure that at least one element with the class exists
+	const postScheduleDropdown = document.getElementsByClassName('editor-post-schedule__panel-dropdown');
+	if (postScheduleDropdown.length > 0) {
+		// Use the first element in the collection
+		const targetElement = postScheduleDropdown[0];
+		// Find the closest ancestor of the target element with the specified selector
+		const closestAncestor = targetElement.closest('.components-flex.components-h-stack.editor-post-panel__row');
+		if (closestAncestor) {
+			closestAncestor.style.display = 'none';
+		}
+	}
+
+	const visibilitySlot = document.getElementsByClassName('edit-post-post-visibility')
+	const hstackVisibilitySlot = document.querySelectorAll('.components-flex.components-h-stack.editor-post-panel__row')
+	const targetSlot = visibilitySlot.length > 0 ? visibilitySlot[0] : hstackVisibilitySlot[0]
+	targetSlot.after(document.getElementsByClassName('wpp-calendar-edit-post-post-schedule')[0])
 })
